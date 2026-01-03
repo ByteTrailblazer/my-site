@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Опрос Tanks Blitz</title>
+    <title>Быстрый математический тест!</title>
     <style>
+        * {
+            transition: all 0.3s;
+        }
         body {
             font-family: Arial, sans-serif;
             padding: 20px;
@@ -12,29 +15,36 @@
             color: white;
             max-width: 500px;
             margin: 0 auto;
+            min-height: 100vh;
         }
         h1 {
-            color: #ff6b00;
+            color: #00ff88;
             text-align: center;
+        }
+        #timer {
+            font-size: 48px;
+            text-align: center;
+            color: #ff3333;
+            font-weight: bold;
         }
         .question {
             background: #16213e;
             padding: 15px;
             margin: 15px 0;
             border-radius: 10px;
-            border-left: 4px solid #ff6b00;
+            border-left: 4px solid #00ff88;
         }
-        label {
-            display: block;
-            padding: 8px 0;
-            cursor: pointer;
-        }
-        input[type="radio"] {
-            margin-right: 10px;
+        input[type="number"] {
+            width: 80px;
+            padding: 10px;
+            font-size: 18px;
+            border-radius: 5px;
+            border: none;
+            margin-left: 10px;
         }
         button {
-            background: #ff6b00;
-            color: white;
+            background: #00ff88;
+            color: black;
             border: none;
             padding: 15px 30px;
             font-size: 18px;
@@ -42,75 +52,229 @@
             width: 100%;
             margin-top: 20px;
             cursor: pointer;
+            font-weight: bold;
         }
         button:hover {
-            background: #ff8533;
+            background: #00cc6a;
         }
         #result {
-            background: #0f3460;
+            text-align: center;
+            font-size: 24px;
+            margin-top: 20px;
             padding: 20px;
             border-radius: 10px;
-            margin-top: 20px;
             display: none;
-            text-align: center;
+        }
+        .success {
+            background: #00ff88;
+            color: black;
+        }
+        .fail {
+            background: #ff3333;
+            color: white;
+        }
+
+        /* ХАОС стили */
+        .chaos-mode {
+            animation: shake 0.1s infinite;
+        }
+        @keyframes shake {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(10px, -10px) rotate(5deg); }
+            50% { transform: translate(-10px, 10px) rotate(-5deg); }
+            75% { transform: translate(10px, 10px) rotate(3deg); }
+            100% { transform: translate(-10px, -10px) rotate(-3deg); }
+        }
+        .flying {
+            position: fixed;
+            animation: fly 2s infinite linear;
+            pointer-events: none;
+            font-size: 40px;
+        }
+        @keyframes fly {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(100px, -200px) rotate(180deg); }
+            50% { transform: translate(-150px, -100px) rotate(360deg); }
+            75% { transform: translate(200px, 100px) rotate(540deg); }
+            100% { transform: translate(0, 0) rotate(720deg); }
+        }
+        @keyframes rainbow {
+            0% { background: red; }
+            17% { background: orange; }
+            33% { background: yellow; }
+            50% { background: green; }
+            67% { background: blue; }
+            83% { background: purple; }
+            100% { background: red; }
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes flip {
+            0% { transform: scaleX(1) scaleY(1); }
+            25% { transform: scaleX(-1) scaleY(1); }
+            50% { transform: scaleX(-1) scaleY(-1); }
+            75% { transform: scaleX(1) scaleY(-1); }
+            100% { transform: scaleX(1) scaleY(1); }
         }
     </style>
 </head>
 <body>
-    <h1>🎮 Опрос по Tanks Blitz</h1>
+    <h1>🧮 Быстрый математический тест!</h1>
+    
+    <div id="timer">30</div>
+    <p style="text-align: center;">⚠️ Успей ответить правильно!</p>
 
     <div class="question">
-        <p><b>1. Какой твой любимый класс танков?</b></p>
-        <label><input type="radio" name="q1" value="Лёгкие"> Лёгкие танки</label>
-        <label><input type="radio" name="q1" value="Средние"> Средние танки</label>
-        <label><input type="radio" name="q1" value="Тяжёлые"> Тяжёлые танки</label>
-        <label><input type="radio" name="q1" value="ПТ-САУ"> ПТ-САУ</label>
-    </div>
-
-    <div class="question">
-        <p><b>2. Любимая нация?</b></p>
-        <label><input type="radio" name="q2" value="СССР"> СССР 🇷🇺</label>
-        <label><input type="radio" name="q2" value="Германия"> Германия 🇩🇪</label>
-        <label><input type="radio" name="q2" value="США"> США 🇺🇸</label>
-        <label><input type="radio" name="q2" value="Другая"> Другая</label>
+        <p><b>1. Сколько будет 7 + 8?</b></p>
+        <input type="number" id="q1" placeholder="?">
     </div>
 
     <div class="question">
-        <p><b>3. Сколько боёв у тебя?</b></p>
-        <label><input type="radio" name="q3" value="До 1000"> До 1000</label>
-        <label><input type="radio" name="q3" value="1000-5000"> 1000 - 5000</label>
-        <label><input type="radio" name="q3" value="5000-10000"> 5000 - 10000</label>
-        <label><input type="radio" name="q3" value="10000+"> 10000+</label>
+        <p><b>2. Сколько будет 12 × 3?</b></p>
+        <input type="number" id="q2" placeholder="?">
     </div>
 
     <div class="question">
-        <p><b>4. Твой любимый танк?</b></p>
-        <input type="text" id="favTank" placeholder="Напиши название..." 
-               style="width: 100%; padding: 10px; border-radius: 5px; border: none;">
+        <p><b>3. Сколько будет 100 - 37?</b></p>
+        <input type="number" id="q3" placeholder="?">
     </div>
 
-    <button onclick="showResult()">Отправить ответы</button>
-
-    <div id="result">
-        <h2>✅ Спасибо за ответы!</h2>
-        <p id="answers"></p>
+    <div class="question">
+        <p><b>4. Сколько будет 144 ÷ 12?</b></p>
+        <input type="number" id="q4" placeholder="?">
     </div>
+
+    <div class="question">
+        <p><b>5. Сколько будет 9 × 9?</b></p>
+        <input type="number" id="q5" placeholder="?">
+    </div>
+
+    <button onclick="checkAnswers()">✅ Проверить ответы</button>
+
+    <div id="result"></div>
 
     <script>
-        function showResult() {
-            var q1 = document.querySelector('input[name="q1"]:checked');
-            var q2 = document.querySelector('input[name="q2"]:checked');
-            var q3 = document.querySelector('input[name="q3"]:checked');
-            var tank = document.getElementById('favTank').value;
+        // Правильные ответы
+        var answers = {
+            q1: 15,
+            q2: 36,
+            q3: 63,
+            q4: 12,
+            q5: 81
+        };
 
-            var text = "";
-            if(q1) text += "Класс: " + q1.value + "<br>";
-            if(q2) text += "Нация: " + q2.value + "<br>";
-            if(q3) text += "Боёв: " + q3.value + "<br>";
-            if(tank) text += "Любимый танк: " + tank;
+        // Таймер
+        var timeLeft = 30;
+        var timerInterval = setInterval(function() {
+            timeLeft--;
+            document.getElementById('timer').textContent = timeLeft;
+            
+            if (timeLeft <= 10) {
+                document.getElementById('timer').style.color = '#ff0000';
+                document.getElementById('timer').style.fontSize = '60px';
+            }
+            
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                startChaos("⏰ ВРЕМЯ ВЫШЛО!");
+            }
+        }, 1000);
 
-            document.getElementById('answers').innerHTML = text;
-            document.getElementById('result').style.display = 'block';
+        function checkAnswers() {
+            clearInterval(timerInterval);
+            
+            var q1 = parseInt(document.getElementById('q1').value);
+            var q2 = parseInt(document.getElementById('q2').value);
+            var q3 = parseInt(document.getElementById('q3').value);
+            var q4 = parseInt(document.getElementById('q4').value);
+            var q5 = parseInt(document.getElementById('q5').value);
+
+            if (q1 === answers.q1 && 
+                q2 === answers.q2 && 
+                q3 === answers.q3 && 
+                q4 === answers.q4 && 
+                q5 === answers.q5) {
+                // Победа!
+                var result = document.getElementById('result');
+                result.className = 'success';
+                result.innerHTML = '🎉 МОЛОДЕЦ! Всё правильно!';
+                result.style.display = 'block';
+            } else {
+                // ХАОС!
+                startChaos("❌ НЕПРАВИЛЬНО!");
+            }
+        }
+
+        function startChaos(message) {
+            var result = document.getElementById('result');
+            result.className = 'fail';
+            result.innerHTML = message + '<br>😈 ХАОС НАЧИНАЕТСЯ!';
+            result.style.display = 'block';
+
+            // Трясём страницу
+            document.body.classList.add('chaos-mode');
+
+            // Радужный фон
+            document.body.style.animation = 'rainbow 0.5s infinite';
+
+            // Создаём летающие объекты
+            var emojis = ['💀', '🔥', '👻', '😱', '🤯', '💥', '⚡', '🌀', '👾', '😈'];
+            
+            setInterval(function() {
+                var emoji = document.createElement('div');
+                emoji.className = 'flying';
+                emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                emoji.style.left = Math.random() * window.innerWidth + 'px';
+                emoji.style.top = Math.random() * window.innerHeight + 'px';
+                emoji.style.animationDuration = (Math.random() * 2 + 1) + 's';
+                document.body.appendChild(emoji);
+            }, 200);
+
+            // Всё крутится
+            setTimeout(function() {
+                document.body.style.animation = 'rainbow 0.5s infinite, spin 2s infinite linear';
+            }, 2000);
+
+            // Всё переворачивается
+            setTimeout(function() {
+                document.body.style.animation = 'rainbow 0.3s infinite, flip 1s infinite';
+            }, 4000);
+
+            // Элементы разлетаются
+            setTimeout(function() {
+                var elements = document.querySelectorAll('.question, button, h1');
+                elements.forEach(function(el) {
+                    el.style.position = 'relative';
+                    setInterval(function() {
+                        el.style.left = (Math.random() * 200 - 100) + 'px';
+                        el.style.top = (Math.random() * 200 - 100) + 'px';
+                        el.style.transform = 'rotate(' + (Math.random() * 360) + 'deg)';
+                    }, 300);
+                });
+            }, 3000);
+
+            // Меняем текст на безумие
+            setTimeout(function() {
+                var texts = ['ХАОС!', 'ПАНИКА!', '😈😈😈', 'ААААА!', 'RIP', '💀💀💀'];
+                setInterval(function() {
+                    document.title = texts[Math.floor(Math.random() * texts.length)];
+                }, 200);
+            }, 1000);
+
+            // Алерты (раздражающие)
+            setTimeout(function() {
+                alert('😈 ХАОС АКТИВИРОВАН!');
+            }, 500);
+
+            setTimeout(function() {
+                alert('🔥 ВСЁ ГОРИТ!');
+            }, 3000);
+
+            setTimeout(function() {
+                alert('💀 СПАСЕНИЯ НЕТ!');
+            }, 6000);
         }
     </script>
 </body>
