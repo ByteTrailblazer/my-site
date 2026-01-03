@@ -6,7 +6,7 @@
     <title>Быстрый математический тест!</title>
     <style>
         * {
-            transition: all 0.3s;
+            transition: all 0.05s;
         }
         body {
             font-family: Arial, sans-serif;
@@ -16,6 +16,7 @@
             max-width: 500px;
             margin: 0 auto;
             min-height: 100vh;
+            overflow-x: hidden;
         }
         h1 {
             color: #00ff88;
@@ -54,9 +55,6 @@
             cursor: pointer;
             font-weight: bold;
         }
-        button:hover {
-            background: #00cc6a;
-        }
         #result {
             text-align: center;
             font-size: 24px;
@@ -73,50 +71,35 @@
             background: #ff3333;
             color: white;
         }
-
-        /* ХАОС стили */
-        .chaos-mode {
-            animation: shake 0.1s infinite;
-        }
-        @keyframes shake {
-            0% { transform: translate(0, 0) rotate(0deg); }
-            25% { transform: translate(10px, -10px) rotate(5deg); }
-            50% { transform: translate(-10px, 10px) rotate(-5deg); }
-            75% { transform: translate(10px, 10px) rotate(3deg); }
-            100% { transform: translate(-10px, -10px) rotate(-3deg); }
-        }
-        .flying {
+        .chaos-text {
             position: fixed;
-            animation: fly 2s infinite linear;
+            font-size: 30px;
+            font-weight: bold;
             pointer-events: none;
-            font-size: 40px;
+            z-index: 9999;
+            text-shadow: 2px 2px 4px black;
         }
-        @keyframes fly {
-            0% { transform: translate(0, 0) rotate(0deg); }
-            25% { transform: translate(100px, -200px) rotate(180deg); }
-            50% { transform: translate(-150px, -100px) rotate(360deg); }
-            75% { transform: translate(200px, 100px) rotate(540deg); }
-            100% { transform: translate(0, 0) rotate(720deg); }
+        .flying-emoji {
+            position: fixed;
+            font-size: 50px;
+            pointer-events: none;
+            z-index: 9998;
         }
-        @keyframes rainbow {
-            0% { background: red; }
-            17% { background: orange; }
-            33% { background: yellow; }
-            50% { background: green; }
-            67% { background: blue; }
-            83% { background: purple; }
-            100% { background: red; }
+        .clone-element {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9997;
+            opacity: 0.8;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        @keyframes flip {
-            0% { transform: scaleX(1) scaleY(1); }
-            25% { transform: scaleX(-1) scaleY(1); }
-            50% { transform: scaleX(-1) scaleY(-1); }
-            75% { transform: scaleX(1) scaleY(-1); }
-            100% { transform: scaleX(1) scaleY(1); }
+        .glitch {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 10000;
+            mix-blend-mode: overlay;
         }
     </style>
 </head>
@@ -155,15 +138,12 @@
 
     <div id="result"></div>
 
+    <canvas id="glitchCanvas" class="glitch"></canvas>
+
     <script>
-        // Правильные ответы
-        var answers = {
-            q1: 15,
-            q2: 36,
-            q3: 63,
-            q4: 12,
-            q5: 81
-        };
+        var answers = { q1: 15, q2: 36, q3: 63, q4: 12, q5: 81 };
+        var chaosActive = false;
+        var chaosLevel = 0;
 
         // Таймер
         var timeLeft = 30;
@@ -173,7 +153,8 @@
             
             if (timeLeft <= 10) {
                 document.getElementById('timer').style.color = '#ff0000';
-                document.getElementById('timer').style.fontSize = '60px';
+                document.getElementById('timer').style.fontSize = (60 + (10 - timeLeft) * 3) + 'px';
+                document.body.style.background = timeLeft % 2 ? '#3a1a1a' : '#1a1a2e';
             }
             
             if (timeLeft <= 0) {
@@ -191,91 +172,366 @@
             var q4 = parseInt(document.getElementById('q4').value);
             var q5 = parseInt(document.getElementById('q5').value);
 
-            if (q1 === answers.q1 && 
-                q2 === answers.q2 && 
-                q3 === answers.q3 && 
-                q4 === answers.q4 && 
-                q5 === answers.q5) {
-                // Победа!
+            if (q1 === answers.q1 && q2 === answers.q2 && 
+                q3 === answers.q3 && q4 === answers.q4 && q5 === answers.q5) {
                 var result = document.getElementById('result');
                 result.className = 'success';
                 result.innerHTML = '🎉 МОЛОДЕЦ! Всё правильно!';
                 result.style.display = 'block';
             } else {
-                // ХАОС!
                 startChaos("❌ НЕПРАВИЛЬНО!");
             }
         }
 
         function startChaos(message) {
+            chaosActive = true;
+            
             var result = document.getElementById('result');
             result.className = 'fail';
             result.innerHTML = message + '<br>😈 ХАОС НАЧИНАЕТСЯ!';
             result.style.display = 'block';
 
-            // Трясём страницу
-            document.body.classList.add('chaos-mode');
-
-            // Радужный фон
-            document.body.style.animation = 'rainbow 0.5s infinite';
-
-            // Создаём летающие объекты
-            var emojis = ['💀', '🔥', '👻', '😱', '🤯', '💥', '⚡', '🌀', '👾', '😈'];
+            // Запускаем тяжёлый рендеринг для просадки FPS
+            startHeavyRendering();
             
+            // Основной цикл хаоса
+            chaosLoop();
+            
+            // Спавн эмодзи
+            setInterval(spawnEmoji, 50);
+            
+            // Спавн текста
+            setInterval(spawnChaosText, 100);
+            
+            // Клонирование элементов
+            setInterval(cloneElements, 200);
+            
+            // Глитч эффект на canvas
+            glitchEffect();
+            
+            // Трясём мышку
+            fakeCursor();
+            
+            // Меняем размеры элементов
+            setInterval(resizeElements, 100);
+            
+            // Звуковой спам (если разрешено)
+            soundChaos();
+            
+            // Алерты
+            alertChaos();
+            
+            // Увеличиваем уровень хаоса
             setInterval(function() {
+                chaosLevel++;
+            }, 1000);
+        }
+
+        function startHeavyRendering() {
+            // Создаём много тяжёлых элементов для просадки FPS
+            var container = document.createElement('div');
+            container.id = 'heavy-container';
+            container.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9995;';
+            document.body.appendChild(container);
+
+            setInterval(function() {
+                if (!chaosActive) return;
+                
+                // Создаём много box-shadow элементов (очень тяжёлые)
+                for (var i = 0; i < 10; i++) {
+                    var heavy = document.createElement('div');
+                    heavy.style.cssText = `
+                        position: fixed;
+                        width: ${Math.random() * 200 + 50}px;
+                        height: ${Math.random() * 200 + 50}px;
+                        left: ${Math.random() * 100}%;
+                        top: ${Math.random() * 100}%;
+                        background: rgba(${Math.random()*255},${Math.random()*255},${Math.random()*255},0.5);
+                        box-shadow: 
+                            0 0 50px 20px rgba(255,0,0,0.5),
+                            0 0 100px 40px rgba(0,255,0,0.5),
+                            0 0 150px 60px rgba(0,0,255,0.5),
+                            inset 0 0 50px rgba(255,255,0,0.5);
+                        filter: blur(${Math.random() * 10}px) hue-rotate(${Math.random() * 360}deg);
+                        transform: rotate(${Math.random() * 360}deg) scale(${Math.random() * 2 + 0.5});
+                        border-radius: ${Math.random() * 50}%;
+                        animation: none;
+                    `;
+                    container.appendChild(heavy);
+                    
+                    setTimeout(function() {
+                        heavy.remove();
+                    }, 500);
+                }
+
+                // Принудительный reflow для нагрузки
+                for (var j = 0; j < 50; j++) {
+                    document.body.offsetHeight;
+                    document.body.style.transform = `rotate(${Math.random() * 2 - 1}deg)`;
+                }
+            }, 50);
+
+            // Тяжёлые CSS анимации на всё
+            var style = document.createElement('style');
+            style.innerHTML = `
+                * {
+                    animation: megaChaos 0.05s infinite linear !important;
+                }
+                @keyframes megaChaos {
+                    0% { 
+                        filter: hue-rotate(0deg) blur(1px); 
+                        transform: translate(${Math.random()*10-5}px, ${Math.random()*10-5}px) rotate(${Math.random()*10-5}deg);
+                    }
+                    50% { 
+                        filter: hue-rotate(180deg) blur(2px); 
+                        transform: translate(${Math.random()*10-5}px, ${Math.random()*10-5}px) rotate(${Math.random()*10-5}deg);
+                    }
+                    100% { 
+                        filter: hue-rotate(360deg) blur(1px);
+                        transform: translate(${Math.random()*10-5}px, ${Math.random()*10-5}px) rotate(${Math.random()*10-5}deg);
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        function chaosLoop() {
+            if (!chaosActive) return;
+
+            // Меняем фон
+            document.body.style.background = `rgb(${Math.random()*255},${Math.random()*255},${Math.random()*255})`;
+            
+            // Трясём всё
+            document.body.style.transform = `
+                translate(${Math.random()*30-15}px, ${Math.random()*30-15}px) 
+                rotate(${Math.random()*10-5}deg)
+                scale(${0.9 + Math.random()*0.2})
+            `;
+
+            // Инвертируем цвета случайно
+            if (Math.random() > 0.7) {
+                document.body.style.filter = 'invert(1)';
+            } else {
+                document.body.style.filter = `hue-rotate(${Math.random()*360}deg) saturate(${Math.random()*5})`;
+            }
+
+            setTimeout(chaosLoop, 30);
+        }
+
+        function spawnEmoji() {
+            if (!chaosActive) return;
+            
+            var emojis = ['💀', '🔥', '👻', '😱', '🤯', '💥', '⚡', '🌀', '👾', '😈', '☠️', '🎃', '👹', '👺', '🤡', '💩', '🙀', '😵', '🥴', '🤮'];
+            
+            for (var i = 0; i < 3 + chaosLevel; i++) {
                 var emoji = document.createElement('div');
-                emoji.className = 'flying';
+                emoji.className = 'flying-emoji';
                 emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
                 emoji.style.left = Math.random() * window.innerWidth + 'px';
                 emoji.style.top = Math.random() * window.innerHeight + 'px';
-                emoji.style.animationDuration = (Math.random() * 2 + 1) + 's';
+                emoji.style.fontSize = (30 + Math.random() * 50 + chaosLevel * 5) + 'px';
+                emoji.style.transform = `rotate(${Math.random()*360}deg)`;
                 document.body.appendChild(emoji);
-            }, 200);
-
-            // Всё крутится
-            setTimeout(function() {
-                document.body.style.animation = 'rainbow 0.5s infinite, spin 2s infinite linear';
-            }, 2000);
-
-            // Всё переворачивается
-            setTimeout(function() {
-                document.body.style.animation = 'rainbow 0.3s infinite, flip 1s infinite';
-            }, 4000);
-
-            // Элементы разлетаются
-            setTimeout(function() {
-                var elements = document.querySelectorAll('.question, button, h1');
-                elements.forEach(function(el) {
-                    el.style.position = 'relative';
-                    setInterval(function() {
-                        el.style.left = (Math.random() * 200 - 100) + 'px';
-                        el.style.top = (Math.random() * 200 - 100) + 'px';
-                        el.style.transform = 'rotate(' + (Math.random() * 360) + 'deg)';
-                    }, 300);
-                });
-            }, 3000);
-
-            // Меняем текст на безумие
-            setTimeout(function() {
-                var texts = ['ХАОС!', 'ПАНИКА!', '😈😈😈', 'ААААА!', 'RIP', '💀💀💀'];
-                setInterval(function() {
-                    document.title = texts[Math.floor(Math.random() * texts.length)];
-                }, 200);
-            }, 1000);
-
-            // Алерты (раздражающие)
-            setTimeout(function() {
-                alert('😈 ХАОС АКТИВИРОВАН!');
-            }, 500);
-
-            setTimeout(function() {
-                alert('🔥 ВСЁ ГОРИТ!');
-            }, 3000);
-
-            setTimeout(function() {
-                alert('💀 СПАСЕНИЯ НЕТ!');
-            }, 6000);
+                
+                // Анимация
+                var startX = parseFloat(emoji.style.left);
+                var startY = parseFloat(emoji.style.top);
+                var velX = (Math.random() - 0.5) * 20;
+                var velY = (Math.random() - 0.5) * 20;
+                
+                (function(el, vx, vy) {
+                    var x = startX, y = startY, rot = 0;
+                    var interval = setInterval(function() {
+                        x += vx;
+                        y += vy;
+                        rot += 20;
+                        el.style.left = x + 'px';
+                        el.style.top = y + 'px';
+                        el.style.transform = `rotate(${rot}deg) scale(${1 + Math.random()})`;
+                    }, 30);
+                    
+                    setTimeout(function() {
+                        clearInterval(interval);
+                        el.remove();
+                    }, 2000);
+                })(emoji, velX, velY);
+            }
         }
+
+        function spawnChaosText() {
+            if (!chaosActive) return;
+            
+            var texts = ['ХАОС!', 'ПАНИКА!', 'АААА!', 'RIP', 'ERROR', '404', 'FATAL', 'CRASH', 'DOOM', 'КОНЕЦ!', 'БАГ!', 'ВИРУС!'];
+            
+            var text = document.createElement('div');
+            text.className = 'chaos-text';
+            text.textContent = texts[Math.floor(Math.random() * texts.length)];
+            text.style.left = Math.random() * window.innerWidth + 'px';
+            text.style.top = Math.random() * window.innerHeight + 'px';
+            text.style.color = `rgb(${Math.random()*255},${Math.random()*255},${Math.random()*255})`;
+            text.style.fontSize = (20 + Math.random() * 40 + chaosLevel * 3) + 'px';
+            text.style.transform = `rotate(${Math.random()*60-30}deg)`;
+            document.body.appendChild(text);
+            
+            setTimeout(function() {
+                text.remove();
+            }, 1000);
+        }
+
+        function cloneElements() {
+            if (!chaosActive) return;
+            
+            var elements = document.querySelectorAll('.question, button, h1, #timer');
+            elements.forEach(function(el) {
+                if (Math.random() > 0.5) {
+                    var clone = el.cloneNode(true);
+                    clone.className = 'clone-element';
+                    clone.style.left = Math.random() * window.innerWidth + 'px';
+                    clone.style.top = Math.random() * window.innerHeight + 'px';
+                    clone.style.transform = `rotate(${Math.random()*360}deg) scale(${0.5 + Math.random()})`;
+                    clone.style.background = `rgba(${Math.random()*255},${Math.random()*255},${Math.random()*255},0.8)`;
+                    document.body.appendChild(clone);
+                    
+                    setTimeout(function() {
+                        clone.remove();
+                    }, 1500);
+                }
+            });
+        }
+
+        function glitchEffect() {
+            var canvas = document.getElementById('glitchCanvas');
+            var ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            function draw() {
+                if (!chaosActive) return;
+                
+                // Случайные линии
+                for (var i = 0; i < 20 + chaosLevel * 5; i++) {
+                    ctx.fillStyle = `rgba(${Math.random()*255},${Math.random()*255},${Math.random()*255},${Math.random()})`;
+                    ctx.fillRect(
+                        Math.random() * canvas.width,
+                        Math.random() * canvas.height,
+                        Math.random() * canvas.width,
+                        Math.random() * 20
+                    );
+                }
+                
+                // Случайные блоки
+                for (var j = 0; j < 10 + chaosLevel * 3; j++) {
+                    ctx.fillStyle = `rgba(${Math.random()*255},${Math.random()*255},${Math.random()*255},${Math.random() * 0.5})`;
+                    ctx.fillRect(
+                        Math.random() * canvas.width,
+                        Math.random() * canvas.height,
+                        Math.random() * 200,
+                        Math.random() * 200
+                    );
+                }
+
+                // Частично очищаем
+                ctx.fillStyle = 'rgba(0,0,0,0.1)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                setTimeout(draw, 30);
+            }
+            draw();
+        }
+
+        function fakeCursor() {
+            for (var i = 0; i < 10; i++) {
+                var cursor = document.createElement('div');
+                cursor.innerHTML = '🖱️';
+                cursor.style.cssText = 'position:fixed;font-size:30px;pointer-events:none;z-index:99999;';
+                document.body.appendChild(cursor);
+                
+                (function(el) {
+                    setInterval(function() {
+                        if (!chaosActive) return;
+                        el.style.left = Math.random() * window.innerWidth + 'px';
+                        el.style.top = Math.random() * window.innerHeight + 'px';
+                    }, 50);
+                })(cursor);
+            }
+        }
+
+        function resizeElements() {
+            if (!chaosActive) return;
+            
+            var all = document.querySelectorAll('*');
+            all.forEach(function(el) {
+                if (Math.random() > 0.9) {
+                    el.style.fontSize = (Math.random() * 30 + 10) + 'px';
+                }
+            });
+        }
+
+        function soundChaos() {
+            // Создаём раздражающий звук через Web Audio API
+            try {
+                var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                setInterval(function() {
+                    if (!chaosActive) return;
+                    
+                    var oscillator = audioCtx.createOscillator();
+                    var gainNode = audioCtx.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    
+                    oscillator.frequency.value = Math.random() * 2000 + 100;
+                    oscillator.type = ['sine', 'square', 'sawtooth', 'triangle'][Math.floor(Math.random() * 4)];
+                    
+                    gainNode.gain.value = 0.1;
+                    
+                    oscillator.start();
+                    oscillator.stop(audioCtx.currentTime + 0.1);
+                }, 200);
+            } catch(e) {}
+        }
+
+        function alertChaos() {
+            var messages = [
+                '😈 ХАОС АКТИВИРОВАН!',
+                '🔥 ВСЁ ГОРИТ!',
+                '💀 СПАСЕНИЯ НЕТ!',
+                '👻 БУУУУ!',
+                '🤯 МОЗГ ВЗРЫВАЕТСЯ!',
+                '⚠️ КРИТИЧЕСКАЯ ОШИБКА!',
+                '🦠 ВИРУС ОБНАРУЖЕН!',
+                '💥 БАБАХ!'
+            ];
+            
+            var i = 0;
+            function showAlert() {
+                if (i < messages.length && chaosActive) {
+                    setTimeout(function() {
+                        alert(messages[i]);
+                        i++;
+                        showAlert();
+                    }, 2500);
+                }
+            }
+            
+            setTimeout(showAlert, 500);
+        }
+
+        // Блокируем закрытие страницы
+        window.onbeforeunload = function() {
+            if (chaosActive) {
+                return "😈 Ты думал сбежать? ХАОС ВЕЧЕН!";
+            }
+        };
+
+        // Меняем title постоянно
+        setInterval(function() {
+            if (chaosActive) {
+                var titles = ['💀 ХАОС!', '🔥 ГОРИМ!', '😈 DOOM', '⚠️ ERROR', '👻 BOO!', '🤯 CRASH', '💥 BANG!'];
+                document.title = titles[Math.floor(Math.random() * titles.length)];
+            }
+        }, 100);
     </script>
 </body>
 </html>
