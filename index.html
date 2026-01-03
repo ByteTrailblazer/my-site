@@ -3,17 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Мой сайт</title>
+    <title>Опрос Tanks Blitz</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             padding: 20px;
+            background: #1a1a2e;
+            color: white;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #ff6b00;
+            text-align: center;
+        }
+        .question {
+            background: #16213e;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 10px;
+            border-left: 4px solid #ff6b00;
+        }
+        label {
+            display: block;
+            padding: 8px 0;
+            cursor: pointer;
+        }
+        input[type="radio"] {
+            margin-right: 10px;
+        }
+        button {
+            background: #ff6b00;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 10px;
+            width: 100%;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #ff8533;
+        }
+        #result {
+            background: #0f3460;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
             text-align: center;
         }
     </style>
 </head>
 <body>
-    <h1>Привет!</h1>
-    <p>Это мой сайт</p>
+    <h1>🎮 Опрос по Tanks Blitz</h1>
+
+    <div class="question">
+        <p><b>1. Какой твой любимый класс танков?</b></p>
+        <label><input type="radio" name="q1" value="Лёгкие"> Лёгкие танки</label>
+        <label><input type="radio" name="q1" value="Средние"> Средние танки</label>
+        <label><input type="radio" name="q1" value="Тяжёлые"> Тяжёлые танки</label>
+        <label><input type="radio" name="q1" value="ПТ-САУ"> ПТ-САУ</label>
+    </div>
+
+    <div class="question">
+        <p><b>2. Любимая нация?</b></p>
+        <label><input type="radio" name="q2" value="СССР"> СССР 🇷🇺</label>
+        <label><input type="radio" name="q2" value="Германия"> Германия 🇩🇪</label>
+        <label><input type="radio" name="q2" value="США"> США 🇺🇸</label>
+        <label><input type="radio" name="q2" value="Другая"> Другая</label>
+    </div>
+
+    <div class="question">
+        <p><b>3. Сколько боёв у тебя?</b></p>
+        <label><input type="radio" name="q3" value="До 1000"> До 1000</label>
+        <label><input type="radio" name="q3" value="1000-5000"> 1000 - 5000</label>
+        <label><input type="radio" name="q3" value="5000-10000"> 5000 - 10000</label>
+        <label><input type="radio" name="q3" value="10000+"> 10000+</label>
+    </div>
+
+    <div class="question">
+        <p><b>4. Твой любимый танк?</b></p>
+        <input type="text" id="favTank" placeholder="Напиши название..." 
+               style="width: 100%; padding: 10px; border-radius: 5px; border: none;">
+    </div>
+
+    <button onclick="showResult()">Отправить ответы</button>
+
+    <div id="result">
+        <h2>✅ Спасибо за ответы!</h2>
+        <p id="answers"></p>
+    </div>
+
+    <script>
+        function showResult() {
+            var q1 = document.querySelector('input[name="q1"]:checked');
+            var q2 = document.querySelector('input[name="q2"]:checked');
+            var q3 = document.querySelector('input[name="q3"]:checked');
+            var tank = document.getElementById('favTank').value;
+
+            var text = "";
+            if(q1) text += "Класс: " + q1.value + "<br>";
+            if(q2) text += "Нация: " + q2.value + "<br>";
+            if(q3) text += "Боёв: " + q3.value + "<br>";
+            if(tank) text += "Любимый танк: " + tank;
+
+            document.getElementById('answers').innerHTML = text;
+            document.getElementById('result').style.display = 'block';
+        }
+    </script>
 </body>
 </html>
